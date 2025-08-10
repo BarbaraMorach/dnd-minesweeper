@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>D&D Dungeon Trap Puzzle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #2c1810, #1a0f08);
+            font-family: 'Cinzel', serif;
+            color: #d4af37;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .title {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            color: #ffd700;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            margin-bottom: 20px;
+            color: #cd853f;
+            font-style: italic;
+        }
+
+        .setup-area {
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #8B4513;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+        }
+
+        .player-input {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 15px;
+            font-size: 18px;
+            width: 100%;
+            max-width: 280px;
+            background: rgba(20,20,20,0.9);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            color: #d4af37;
+            font-family: 'Cinzel', serif;
+            text-align: center;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .difficulty-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        @media (min-width: 480px) {
+            .difficulty-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .difficulty-btn {
+            padding: 15px 12px;
+            background: rgba(139, 69, 19, 0.8);
+            border: 2px solid #8B4513;
+            color: #d4af37;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .difficulty-btn:active,
+        .difficulty-btn.selected {
+            background: linear-gradient(145deg, #DAA520, #FFD700);
+            color: #2c1810;
+            border-color: #FFD700;
+            font-weight: 600;
+            transform: scale(0.98);
+        }
+
+        .start-btn {
+            padding: 18px 35px;
+            font-size: 18px;
+            background: linear-gradient(145deg, #DAA520, #FFD700);
+            color: #2c1810;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            text-shadow: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            min-height: 60px;
+            margin-top: 15px;
+        }
+
+        .start-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .game-area {
+            background: rgba(0,0,0,0.8);
+            border: 3px solid #8B4513;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .player-name {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: center;
+            gap: clamp(10px, 5vw, 25px);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            overflow: auto;
+            margin: 20px 0;
+        }
+
+        .grid {
+            display: inline-grid;
+            gap: 1px;
+            padding: 8px;
+            background: #654321;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+        }
+
+        .cell {
+            background: linear-gradient(145deg, #8B4513, #A0522D);
+            border: 1px solid #654321;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            transition: all 0.15s ease;
+            position: relative;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Dynamic cell sizing based on grid size and screen */
+        .grid.size-8 .cell { width: min(40px, 10vw); height: min(40px, 10vw); font-size: clamp(12px, 2.5vw, 16px); }
+        .grid.size-12 .cell { width: min(32px, 7vw); height: min(32px, 7vw); font-size: clamp(10px, 2vw, 14px); }
+        .grid.size-16 .cell { width: min(26px, 5.5vw); height: min(26px, 5.5vw); font-size: clamp(8px, 1.8vw, 12px); }
+
+        .cell:active {
+            transform: scale(0.95);
+        }
+
+        .cell.revealed {
+            background: linear-gradient(145deg, #2F1B14, #3D2817);
+            border-color: #1a0f08;
+            cursor: default;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.6);
+        }
+
+        .cell.flagged {
+            background: linear-gradient(145deg, #8B0000, #DC143C);
+        }
+
+        .cell.mine {
+            background: linear-gradient(145deg, #8B0000, #FF0000);
+            animation: pulse 0.4s ease-in-out 2;
+        }
+
+        /* Number colors */
+        .number-1 { color: #4169E1; }
+        .number-2 { color: #228B22; }
+        .number-3 { color: #DC143C; }
+        .number-4 { color: #4B0082; }
+        .number-5 { color: #8B0000; }
+        .number-6 { color: #20B2AA; }
+        .number-7 { color: #000000; background: #ccc; }
+        .number-8 { color: #808080; background: #ddd; }
+
+        .game-message {
+            font-size: clamp(16px, 4vw, 20px);
+            font-weight: 600;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .game-message.win {
+            background: rgba(0, 100, 0, 0.9);
+            border: 2px solid #32CD32;
+            color: #FFF;
+        }
+
+        .game-message.lose {
+            background: rgba(139, 0, 0, 0.9);
+            border: 2px solid #FF0000;
+            color: #FFF;
+        }
+
+        .instructions {
+            background: rgba(139, 69, 19, 0.4);
+            border: 1px solid #8B4513;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: clamp(12px, 3vw, 14px);
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .control-hint {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #FFD700;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: clamp(11px, 2.5vw, 13px);
+            color: #FFD700;
+        }
+
+        .hidden { display: none !important; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Landscape phone optimization */
+        @media screen and (max-height: 500px) and (orientation: landscape) {
+            .title { font-size: 1.5rem; margin-bottom: 5px; }
+            .subtitle { font-size: 0.9rem; margin-bottom: 10px; }
+            .setup-area, .game-area { padding: 15px; margin: 10px 0; }
+            .instructions { font-size: 11px; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🏰 Dungeon Trap Puzzle 🏰</h1>
+        <p class="subtitle">Ancient magic protects this chamber...</p>
+        
+        <div id="setupArea" class="setup-area">
+            <div class="player-input">
+                <input type="text" id="playerName" placeholder="Enter adventurer's name" maxlength="20">
+            </div>
+            
+            <div class="difficulty-grid">
+                <div class="difficulty-btn selected" data-difficulty="easy">
+                    <div><strong>Apprentice</strong></div>
+                    <div>8×8 • 10 traps</div>
+                </div>
+                <div class="difficulty-btn" data-difficulty="medium">
+                    <div><strong>Veteran</strong></div>
+                    <div>12×12 • 25 traps</div>
+                </div>
+                <div class="difficulty-btn" data-difficulty="hard">
+                    <div><strong>Master</strong></div>
+                    <div>16×16 • 50 traps</div>
+                </div>
+            </div>
+            
+            <button class="start-btn" id="startBtn">⚔️ Begin Quest ⚔️</button>
+            
+            <div class="instructions">
+                <strong>📜 Quest Instructions:</strong><br>
+                • <strong>Tap once</strong> to reveal a chamber<br>
+                • <strong>Long press</strong> to place warning flags 🚩<br>
+                • Numbers show adjacent trap count<br>
+                • Find all safe chambers without triggering traps<br>
+                • <strong>Warning:</strong> No second chances!
+            </div>
+            
+            <div class="control-hint">
+                💡 <strong>Mobile Tip:</strong> Hold your finger down for half a second to flag suspicious chambers
+            </div>
+        </div>
+        
+        <div id="gameArea" class="game-area hidden">
+            <div class="player-name" id="playerDisplay"></div>
+            <div class="game-stats">
+                <div class="stat">🚩 <span id="flagCount">0</span></div>
+                <div class="stat">💀 <span id="trapCount">0</span></div>
+                <div class="stat">⏱️ <span id="timer">00:00</span></div>
+                <div class="stat">🏺 <span id="safeCount">0</span></div>
+            </div>
+            <div class="grid-container">
+                <div id="gameGrid" class="grid"></div>
+            </div>
+            <div id="gameMessage" class="game-message hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            grid: [],
+            rows: 8,
+            cols: 8,
+            mines: 10,
+            revealed: 0,
+            flagged: 0,
+            gameOver: false,
+            startTime: null,
+            timerInterval: null,
+            playerName: '',
+            difficulty: 'easy'
+        };
+
+        // Difficulty settings
+        const difficulties = {
+            easy: { rows: 8, cols: 8, mines: 10 },
+            medium: { rows: 12, cols: 12, mines: 25 },
+            hard: { rows: 16, cols: 16, mines: 50 }
+        };
+
+        // Audio context for effects
+        let audioContext;
+        
+        function initAudio() {
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                } catch (e) {
+                    console.log('Audio not supported');
+                }
+            }
+        }
+
+        function playFailSound() {
+            try {
+                if (!audioContext) initAudio();
+                if (!audioContext) {
+                    // Fallback to vibration
+                    if (navigator.vibrate) {
+                        navigator.vibrate([200, 100, 200, 100, 400]);
+                    }
+                    return;
+                }
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.6);
+                oscillator.frequency.exponentialRampToValueAtTime(30, audioContext.currentTime + 1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 1);
+            } catch (e) {
+                if (navigator.vibrate) {
+                    navigator.vibrate([200, 100, 200, 100, 400]);
+                }
+            }
+        }
+
+        function playWinSound() {
+            try {
+                if (!audioContext) initAudio();
+                if (!audioContext) return;
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(523, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.2); // E5
+                oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.4); // G5
+                
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.8);
+            } catch (e) {
+                console.log('Win sound failed');
+            }
+        }
+
+        // Setup event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Difficulty selection
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    gameState.difficulty = this.dataset.difficulty;
+                });
+            });
+
+            // Start button
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            
+            // Enter key on input
+            document.getElementById('playerName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startGame();
+                }
+            });
+        });
+
+        function startGame() {
+            const playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) {
+                alert('🗡️ Please enter your adventurer name first!');
+                return;
+            }
+
+            initAudio(); // Initialize audio on user interaction
+            
+            gameState.playerName = playerName;
+            const diff = difficulties[gameState.difficulty];
+            gameState.rows = diff.rows;
+            gameState.cols = diff.cols;
+            gameState.mines = diff.mines;
+
+            document.getElementById('setupArea').classList.add('hidden');
+            document.getElementById('gameArea').classList.remove('hidden');
+            document.getElementById('playerDisplay').textContent = `${playerName}'s Quest`;
+
+            initializeGame();
+        }
+
+        function initializeGame() {
+            // Reset state
+            gameState.grid = [];
+            gameState.revealed = 0;
+            gameState.flagged = 0;
+            gameState.gameOver = false;
+            gameState.startTime = Date.now();
+
+            // Initialize grid
+            for (let i = 0; i < gameState.rows; i++) {
+                gameState.grid[i] = [];
+                for (let j = 0; j < gameState.cols; j++) {
+                    gameState.grid[i][j] = {
+                        isMine: false,
+                        isRevealed: false,
+                        isFlagged: false,
+                        adjacentMines: 0
+                    };
+                }
+            }
+
+            // Place mines using player name as seed
+            const seed = hashString(gameState.playerName + gameState.difficulty);
+            const random = seededRandom(seed);
+            let minesPlaced = 0;
+            
+            while (minesPlaced < gameState.mines) {
+                const row = Math.floor(random() * gameState.rows);
+                const col = Math.floor(random() * gameState.cols);
+                
+                if (!gameState.grid[row][col].isMine) {
+                    gameState.grid[row][col].isMine = true;
+                    minesPlaced++;
+                }
+            }
+
+            // Calculate adjacent mine counts
+            for (let i = 0; i < gameState.rows; i++) {
+                for (let j = 0; j < gameState.cols; j++) {
+                    if (!gameState.grid[i][j].isMine) {
+                        gameState.grid[i][j].adjacentMines = countAdjacentMines(i, j);
+                    }
+                }
+            }
+
+            renderGrid();
+            updateStats();
+            startTimer();
+        }
+
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash);
+        }
+
+        function seededRandom(seed) {
+            let state = seed;
+            return function() {
+                state = (state * 1664525 + 1013904223) % Math.pow(2, 32);
+                return state / Math.pow(2, 32);
+            };
+        }
+
+        function countAdjacentMines(row, col) {
+            let count = 0;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    const newRow = row + i;
+                    const newCol = col + j;
+                    if (newRow >= 0 && newRow < gameState.rows && 
+                        newCol >= 0 && newCol < gameState.cols && 
+                        gameState.grid[newRow][newCol].isMine) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        function renderGrid() {
+            const gridElement = document.getElementById('gameGrid');
+            gridElement.style.gridTemplateColumns = `repeat(${gameState.cols}, 1fr)`;
+            gridElement.className = `grid size-${gameState.rows}`;
+            gridElement.innerHTML = '';
+
+            for (let i = 0; i < gameState.rows; i++) {
+                for (let j = 0; j < gameState.cols; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    
+                    // Touch handling for mobile
+                    let pressTimer;
+                    let pressStarted = false;
+                    
+                    cell.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        pressStarted = true;
+                        pressTimer = setTimeout(() => {
+                            if (pressStarted) {
+                                handleFlag(i, j);
+                                if (navigator.vibrate) navigator.vibrate(50);
+                            }
+                        }, 500);
+                    }, { passive: false });
+                    
+                    cell.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        clearTimeout(pressTimer);
+                        if (pressStarted) {
+                            pressStarted = false;
+                            // Short tap - reveal
+                            setTimeout(() => handleReveal(i, j), 50);
+                        }
+                    }, { passive: false });
+                    
+                    cell.addEventListener('touchmove', function(e) {
+                        clearTimeout(pressTimer);
+                        pressStarted = false;
+                    });
+
+                    // Mouse events for desktop
+                    cell.addEventListener('click', () => handleReveal(i, j));
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        handleFlag(i, j);
+                    });
+                    
+                    updateCellDisplay(cell, i, j);
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        function updateCellDisplay(cellElement, row, col) {
+            const cell = gameState.grid[row][col];
+            
+            cellElement.className = 'cell';
+            cellElement.textContent = '';
+            
+            if (cell.isFlagged) {
+                cellElement.classList.add('flagged');
+                cellElement.textContent = '🚩';
+            } else if (cell.isRevealed) {
+                cellElement.classList.add('revealed');
+                if (cell.isMine) {
+                    cellElement.classList.add('mine');
+                    cellElement.textContent = '💀';
+                } else if (cell.adjacentMines > 0) {
+                    cellElement.textContent = cell.adjacentMines;
+                    cellElement.classList.add(`number-${cell.adjacentMines}`);
+                }
+            }
+        }
+
+        function handleReveal(row, col) {
+            if (gameState.gameOver || 
+                gameState.grid[row][col].isFlagged || 
+                gameState.grid[row][col].isRevealed) {
+                return;
+            }
+
+            revealCell(row, col);
+            updateStats();
+            renderGrid();
+        }
+
+        function handleFlag(row, col) {
+            if (gameState.gameOver || gameState.grid[row][col].isRevealed) {
+                return;
+            }
+
+            const cell = gameState.grid[row][col];
+            cell.isFlagged = !cell.isFlagged;
+            gameState.flagged += cell.isFlagged ? 1 : -1;
+            
+            updateStats();
+            renderGrid();
+        }
+
+        function revealCell(row, col) {
+            const cell = gameState.grid[row][col];
+            
+            if (cell.isRevealed || cell.isFlagged) return;
+            
+            cell.isRevealed = true;
+            gameState.revealed++;
+            
+            if (cell.isMine) {
+                gameState.gameOver = true;
+                playFailSound();
+                revealAllMines();
+                showMessage("💀 TRAP TRIGGERED! 💀<br>The ancient guardian awakens!<br>Your quest ends here...", "lose");
+                stopTimer();
+                return;
+            }
+            
+            // Auto-reveal adjacent empty cells
+            if (cell.adjacentMines === 0) {
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        const newRow = row + i;
+                        const newCol = col + j;
+                        if (newRow >= 0 && newRow < gameState.rows && 
+                            newCol >= 0 && newCol < gameState.cols) {
+                            revealCell(newRow, newCol);
+                        }
+                    }
+                }
+            }
+            
+            // Check for victory
+            const totalSafeCells = gameState.rows * gameState.cols - gameState.mines;
+            if (gameState.revealed === totalSafeCells) {
+                gameState.gameOver = true;
+                playWinSound();
+                showMessage("🎉 VICTORY! 🎉<br>All chambers safely navigated!<br>The treasure vault awaits your arrival!", "win");
+                stopTimer();
+            }
+        }
+
+        function revealAllMines() {
+            for (let i = 0; i < gameState.rows; i++) {
+                for (let j = 0; j < gameState.cols; j++) {
+                    if (gameState.grid[i][j].isMine) {
+                        gameState.grid[i][j].isRevealed = true;
+                    }
+                }
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageElement = document.getElementById('gameMessage');
+            messageElement.innerHTML = text;
+            messageElement.className = `game-message ${type}`;
+            messageElement.classList.remove('hidden');
+        }
+
+        function updateStats() {
+            document.getElementById('flagCount').textContent = gameState.flagged;
+            document.getElementById('trapCount').textContent = gameState.mines;
+            
+            const safeCells = gameState.rows * gameState.cols - gameState.mines;
+            const remaining = safeCells - gameState.revealed;
+            document.getElementById('safeCount').textContent = remaining;
+        }
+
+        function startTimer() {
+            gameState.timerInterval = setInterval(() => {
+                if (!gameState.gameOver) {
+                    const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                    const seconds = (elapsed % 60).toString().padStart(2, '0');
+                    document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -308,7 +308,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="title">🏰 Dungeon Trap Puzzle 🏰</h1>
+        <h1 class="title">🏰 Brotherhood of the Agnostics 🏰</h1>
         <p class="subtitle">Ancient magic protects this chamber...</p>
         
         <div id="setupArea" class="setup-area">
@@ -322,7 +322,7 @@
                     <div>8×8 • 10 traps</div>
                 </div>
                 <div class="difficulty-btn" data-difficulty="medium">
-                    <div><strong>Veteran</strong></div>
+                    <div><strong>Journeyman</strong></div>
                     <div>12×12 • 25 traps</div>
                 </div>
                 <div class="difficulty-btn" data-difficulty="hard">
@@ -704,7 +704,7 @@
                 gameState.gameOver = true;
                 playFailSound();
                 revealAllMines();
-                showMessage("💀 TRAP TRIGGERED! 💀<br>The ancient guardian awakens!<br>Your quest ends here...", "lose");
+                showMessage("💀 TRAP TRIGGERED! 💀<br>The ancient guardians awaken!<br>Prepare for battle...", "lose");
                 stopTimer();
                 return;
             }
@@ -728,7 +728,7 @@
             if (gameState.revealed === totalSafeCells) {
                 gameState.gameOver = true;
                 playWinSound();
-                showMessage("🎉 VICTORY! 🎉<br>All chambers safely navigated!<br>The treasure vault awaits your arrival!", "win");
+                showMessage("🎉 VICTORY! 🎉<br>All traps safely navigated!<br>You may pass!", "win");
                 stopTimer();
             }
         }
